@@ -1,8 +1,7 @@
 name: Append Image to Release Notes
 
 on:
-  release:
-    types: [created]
+  workflow_dispatch:
 
 jobs:
   append_image_to_release_notes:
