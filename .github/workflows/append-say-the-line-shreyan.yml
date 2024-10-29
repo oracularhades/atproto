@@ -1,0 +1,31 @@
+name: Append Image to Release Notes
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  append_image_to_release_notes:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get Release Data
+        id: get_release_data
+        run: |
+          RELEASE_ID=$(echo "${{ github.event.release.id }}")
+          echo "RELEASE_ID=$RELEASE_ID" >> $GITHUB_ENV
+
+      - name: Append Image to Release Notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_ID: ${{ env.RELEASE_ID }}
+        run: |
+          IMAGE_URL="https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:p2cp5gopk7mgjegy6wadk3ep/bafkreibxlwlto3l3khvg7u5wxwvd4hutngswfznsna526fdni6kaek7ocu@jpeg"  # Replace with the URL of your image
+          curl -X PATCH \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID \
+            -d "$(jq --arg img "![]($IMAGE_URL)" '.body += "\n\n" + $img' <<< "{}")"
